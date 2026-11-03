@@ -314,16 +314,27 @@ function sendAIMessage() {
 
     const chat = document.getElementById('aiChatContent');
     if (chat) {
-        // Resposta dinâmica inteligente baseada na pergunta do usuário
-        let reply = `Com base na sua dúvida sobre "${msg}", o ecossistema monitorado indica que este projeto utiliza padrões modernos de arquitetura, garantindo escalabilidade e facilidade de integração via API.`;
-        
+        // Busca inteligente na base de repositórios para dar uma resposta altamente personalizada
         const lower = msg.toLowerCase();
-        if (lower.includes('react') || lower.includes('frontend')) {
+        let reply = "";
+
+        const found = repositories.find(r => 
+            r.name.toLowerCase().includes(lower) || 
+            r.description.toLowerCase().includes(lower) ||
+            r.language.toLowerCase().includes(lower) ||
+            r.aiSummary.toLowerCase().includes(lower)
+        );
+
+        if (found) {
+            reply = `Encontrei o repositório <strong>${found.name}</strong> (${found.stars} ⭐, Linguagem: ${found.language}). ${found.aiSummary} É uma excelente escolha para a sua busca!`;
+        } else if (lower.includes('react') || lower.includes('frontend')) {
             reply = `O <strong>facebook/react</strong> é a biblioteca líder (#1 global) para interfaces reativas. Recomendo para projetos SPAs de alta performance.`;
-        } else if (lower.includes('ia') || lower.includes('llm') || lower.includes('python')) {
-            reply = `Para inteligência artificial, o <strong>langchain-ai/langchain</strong> é o framework padrão de mercado para criar agentes e pipelines RAG.`;
-        } else if (lower.includes('cli') || lower.includes('ferramenta')) {
-            reply = `A ferramenta <strong>cli/cli</strong> do GitHub é ideal para gerenciar pull requests e issues diretamente pelo terminal com máxima produtividade.`;
+        } else if (lower.includes('ia') || lower.includes('llm') || lower.includes('python') || lower.includes('claude') || lower.includes('openai')) {
+            reply = `Para inteligência artificial e modelos avançados, destacamos o <strong>langchain-ai/langchain</strong> e o <strong>openai/openai-python</strong>, ideais para construir agentes e sistemas RAG.`;
+        } else if (lower.includes('cli') || lower.includes('ferramenta') || lower.includes('git')) {
+            reply = `Para ferramentas e automação de terminal, recomendamos a CLI oficial do GitHub (<strong>cli/cli</strong>) e o cliente HTTP <strong>httpie</strong>.`;
+        } else {
+            reply = `Analisando sua consulta sobre "${msg}": o HubFinder AI monitora repositórios com alta atividade no GitHub. Recomendo explorar a categoria de Ferramentas ou Open Source para este tema.`;
         }
 
         chat.innerHTML += `
