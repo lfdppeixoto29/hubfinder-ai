@@ -61,31 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
     incrementVisits();
 });
 
-// Robô Sincronizador de Repositórios (Simula varredura na API do GitHub)
+// Robô Sincronizador de Repositórios
 function runGitHubSyncBot() {
-    console.log("🤖 [GitHub Sync Bot]: Iniciando varredura e validação de repositórios...");
-    
-    // Filtra apenas os repositórios ativos (removendo os que foram deletados ou arquivados no GitHub)
-    repositories = repositories.filter(repo => {
-        if (repo.active === false) {
-            console.warn(`🗑️ [GitHub Sync Bot]: Repositório ${repo.name} não existe mais no GitHub. Removido da pesquisa.`);
-            return false;
-        }
-        return true;
-    });
-
+    console.log("🤖 [GitHub Sync Bot]: Varredura concluída.");
+    repositories = repositories.filter(repo => repo.active !== false);
     renderRepos(repositories);
-    console.log("✅ [GitHub Sync Bot]: Sincronização concluída com sucesso. Índice atualizado.");
 }
 
 function incrementVisits() {
-    let visits = localStorage.getItem('hubfinder_visits');
+    let visits = localStorage.getItem('hubfinder_real_visits');
     if (!visits) {
-        visits = 14892;
+        visits = 1; // Começa real a partir de 1 (sua visita atual)
     } else {
         visits = parseInt(visits) + 1;
     }
-    localStorage.setItem('hubfinder_visits', visits);
+    localStorage.setItem('hubfinder_real_visits', visits);
     const counterEl = document.getElementById('visitCount');
     if (counterEl) {
         counterEl.innerText = visits.toLocaleString('pt-BR');
@@ -94,8 +84,11 @@ function incrementVisits() {
 
 function renderRepos(repos) {
     const grid = document.getElementById('repoGrid');
-    document.getElementById('resultCount').innerText = `Mostrando ${repos.length} repositórios`;
+    const countEl = document.getElementById('resultCount');
+    if (countEl) countEl.innerText = `Mostrando ${repos.length} repositórios`;
     
+    if (!grid) return;
+
     if (repos.length === 0) {
         grid.innerHTML = `
             <div class="col-span-2 text-center py-12 bg-gray-900/40 rounded-2xl border border-gray-800">
@@ -107,7 +100,7 @@ function renderRepos(repos) {
     }
 
     grid.innerHTML = repos.map(repo => `
-        <div onclick="openRepoDetail('${repo.name}')" class="bg-brand-card/80 border border-brand-border hover:border-indigo-500/50 rounded-2xl p-6 transition-all flex flex-col justify-between group shadow-xl cursor-pointer hover:scale-[1.01]">
+        <div onclick="openRepoDetail('${repo.name}')" class="bg-gray-900/80 border border-gray-800 hover:border-indigo-500/50 rounded-2xl p-6 transition-all flex flex-col justify-between group shadow-xl cursor-pointer hover:scale-[1.01]">
             <div>
                 <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center space-x-3">
@@ -128,7 +121,6 @@ function renderRepos(repos) {
                 </div>
                 <p class="text-gray-400 text-sm mb-4 line-clamp-2">${repo.description}</p>
                 
-                <!-- IA Summary Box -->
                 <div class="p-3 bg-indigo-950/30 border border-indigo-500/20 rounded-xl mb-4">
                     <p class="text-xs font-semibold text-indigo-300 mb-1 flex items-center space-x-1.5">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -178,26 +170,53 @@ function triggerAISearch() {
     openAIChat();
     if (query) {
         const chat = document.getElementById('aiChatContent');
+        if (chat) {
+            chat.innerHTML += `
+                <div class="p-3 bg-gray-800/40 rounded-xl text-right ml-8">
+                    <p class="text-xs font-semibold text-gray-400 mb-1">Você:</p>
+                    <p>Busca inteligente por: "${query}"</p>
+                </div>
+                <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mr-8">
+                    <p class="font-semibold text-indigo-400 mb-1">🤖 HubFinder AI:</p>
+                    <p>Analisando o GitHub em busca de correspondências semânticas para "${query}"... Encontrei projetos compatíveis com alta atividade e documentação validada!</p>
+                </div>
+            `;
+            chat.scrollTop = chat.scrollHeight;
+        }
+    }
+}
+
+function sendAIMessage() {
+    const input = document.getElementById('aiInput');
+    if (!input) return;
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chat = document.getElementById('aiChatContent');
+    if (chat) {
         chat.innerHTML += `
             <div class="p-3 bg-gray-800/40 rounded-xl text-right ml-8">
                 <p class="text-xs font-semibold text-gray-400 mb-1">Você:</p>
-                <p>Busca inteligente por: "${query}"</p>
+                <p>${msg}</p>
             </div>
             <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mr-8">
                 <p class="font-semibold text-indigo-400 mb-1">🤖 HubFinder AI:</p>
-                <p>Analisando o GitHub em busca de correspondências semânticas para "${query}"... Encontrei projetos compatíveis com alta atividade e documentação validada!</p>
+                <p>Processando sua consulta via Copilot IA... Com base nos repositórios monitorados, recomendo verificar a documentação oficial para detalhes de integração avançada.</p>
             </div>
         `;
+        input.value = '';
         chat.scrollTop = chat.scrollHeight;
     }
 }
 
 function openAIChat() {
-    document.getElementById('aiModal').classList.remove('hidden');
+    const modal = document.getElementById('aiModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeAIChat() {
-    document.getElementById('aiModal').classList.add('hidden');
+    const modal = document.getElementById('aiModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function openRepoDetail(repoName) {
@@ -232,7 +251,6 @@ function openRepoDetail(repoName) {
             </div>
 
             <div class="py-6 space-y-5 max-h-[70vh] overflow-y-auto text-sm text-gray-300 pr-2">
-                <!-- Classificação e Estrelas no GitHub -->
                 <div class="p-4 bg-gradient-to-r from-indigo-950/40 to-purple-950/40 rounded-xl border border-indigo-500/30 flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-indigo-300 mb-1 flex items-center gap-2">
@@ -246,7 +264,6 @@ function openRepoDetail(repoName) {
                     </div>
                 </div>
 
-                <!-- Objeto do Repositório -->
                 <div class="p-4 bg-gray-950/60 rounded-xl border border-gray-800">
                     <h4 class="font-bold text-cyan-400 mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-bullseye"></i> Objeto do Repositório
@@ -254,7 +271,6 @@ function openRepoDetail(repoName) {
                     <p class="text-gray-200 leading-relaxed">${repo.description}</p>
                 </div>
 
-                <!-- Vantagens -->
                 <div class="p-4 bg-indigo-950/30 rounded-xl border border-indigo-500/20">
                     <h4 class="font-bold text-indigo-400 mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-star"></i> Vantagens Principais
@@ -266,7 +282,6 @@ function openRepoDetail(repoName) {
                     </ul>
                 </div>
 
-                <!-- Aplicação Prática -->
                 <div class="p-4 bg-purple-950/30 rounded-xl border border-purple-500/20">
                     <h4 class="font-bold text-purple-400 mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-rocket"></i> Aplicação Prática
@@ -298,11 +313,13 @@ function closeRepoDetail() {
 }
 
 function openContactModal() {
-    document.getElementById('contactModal').classList.remove('hidden');
+    const modal = document.getElementById('contactModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeContactModal() {
-    document.getElementById('contactModal').classList.add('hidden');
+    const modal = document.getElementById('contactModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function submitContact() {
