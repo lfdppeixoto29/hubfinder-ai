@@ -10,11 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchRealGitHubData(query) {
     const grid = document.getElementById('repoGrid');
     if (grid) {
-        grid.innerHTML = '<div class="col-span-2 text-center py-12 bg-gray-900/40 rounded-2xl border border-gray-800"><i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-400 mb-3"></i><p class="text-gray-400">Buscando repositórios oficiais no GitHub em tempo real...</p></div>';
+        grid.innerHTML = '<div class="col-span-2 text-center py-12 bg-gray-900/40 rounded-2xl border border-gray-800"><i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-400 mb-3"></i><p class="text-gray-400">Buscando todos os repositórios oficiais no GitHub para "' + query + '"...</p></div>';
     }
 
     try {
-        const res = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=20`);
+        // Buscamos 100 resultados por página (o máximo permitido pela API do GitHub por requisição)
+        const res = await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=100`);
         const data = await res.json();
         
         if (data && data.items) {
@@ -26,14 +27,17 @@ async function fetchRealGitHubData(query) {
                 forks: item.forks_count.toLocaleString('pt-BR'),
                 language: item.language || 'Diversos',
                 url: item.html_url,
-                ranking: `#${idx + 1} no Ranking Global do GitHub`,
-                aiSummary: `Repositório verificado em ${item.language || 'código aberto'} com ${item.stargazers_count.toLocaleString('pt-BR')} estrelas e alta atividade.`,
+                ranking: `#${idx + 1} para "${query}"`,
+                aiSummary: `Repositório oficial encontrado para "${query}" em ${item.language || 'código aberto'} com ${item.stargazers_count.toLocaleString('pt-BR')} estrelas.`,
                 category: classifyCategory(item.topics, item.language, item.name, item.description)
             }));
             renderRepos(repositories);
         }
     } catch (err) {
         console.error('Erro ao buscar dados do GitHub:', err);
+        if (grid) {
+            grid.innerHTML = '<div class="col-span-2 text-center py-12 bg-red-950/40 rounded-2xl border border-red-800"><p class="text-red-400">Erro ao consultar a API do GitHub. Tente novamente.</p></div>';
+        }
     }
 }
 
@@ -65,7 +69,7 @@ function renderRepos(repos) {
         grid.innerHTML = `
             <div class="col-span-2 text-center py-12 bg-gray-900/40 rounded-2xl border border-gray-800">
                 <i class="fa-solid fa-triangle-exclamation text-3xl text-yellow-500 mb-3"></i>
-                <p class="text-gray-400">Nenhum repositório encontrado.</p>
+                <p class="text-gray-400">Nenhum repositório encontrado para esta busca.</p>
             </div>
         `;
         return;
@@ -129,57 +133,23 @@ function handleSearch(query) {
     fetchRealGitHubData(query);
 }
 
+// O BOTÃO DE BUSCA AGORA FAZ BUSCA REAL IMEDIATA NA TELA
 function triggerAISearch() {
-    const query = document.getElementById('searchInput').value;
-    if (query) {
-        fetchRealGitHubData(query);
-        openAIChat();
-        const chat = document.getElementById('aiChatContent');
-        if (chat) {
-            chat.innerHTML += `
-                <div class="p-3 bg-gray-800/40 rounded-xl text-right ml-8">
-                    <p class="text-xs font-semibold text-gray-400 mb-1">Você:</p>
-                    <p>Busca no GitHub por: "${query}"</p>
-                </div>
-                <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mr-8">
-                    <p class="font-semibold text-indigo-400 mb-1">🤖 HubFinder AI:</p>
-                    <p>Consulta executada na API do GitHub para "${query}". Os resultados foram atualizados na tela principal!</p>
-                </div>
-            `;
-            chat.scrollTop = chat.scrollHeight;
-        }
-    }
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    const query = input.value.trim();
+    if (!query) return;
+    fetchRealGitHubData(query);
 }
 
 function sendAIMessage() {
     const input = document.getElementById('aiInput');
     if (!input) return;
-    const msg = input.value.trim();
-    if (!msg) return;
-
-    const chat = document.getElementById('aiChatContent');
-    if (chat) {
-        let reply = `Consulta processada com sucesso no GitHub para "${msg}". Os repositórios mais relevantes foram catalogados pelo nosso assistente inteligente.`;
-        const lower = msg.toLowerCase();
-        if (lower.includes('react') || lower.includes('frontend')) {
-            reply = `O <strong>facebook/react</strong> é a biblioteca líder (#1 global) para interfaces reativas.`;
-        } else if (lower.includes('ia') || lower.includes('llm') || lower.includes('python') || lower.includes('claude')) {
-            reply = `Para inteligência artificial e modelos, destacamos o <strong>langchain-ai/langchain</strong> e ferramentas de linguagem avançada.`;
-        }
-
-        chat.innerHTML += `
-            <div class="p-3 bg-gray-800/40 rounded-xl text-right ml-8">
-                <p class="text-xs font-semibold text-gray-400 mb-1">Você:</p>
-                <p>${msg}</p>
-            </div>
-            <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mr-8">
-                <p class="font-semibold text-indigo-400 mb-1">🤖 HubFinder AI:</p>
-                <p>${reply}</p>
-            </div>
-        `;
-        input.value = '';
-        chat.scrollTop = chat.scrollHeight;
-    }
+    const query = input.value.trim();
+    if (!query) return;
+    closeAIChat();
+    document.getElementById('searchInput').value = query;
+    fetchRealGitHubData(query);
 }
 
 function openAIChat() { document.getElementById('aiModal').classList.remove('hidden'); }
