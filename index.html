@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HubFinder AI — Descubra e analise repositórios do GitHub, ferramentas e projetos open source com inteligência artificial embarcada.">
+    <meta name="google-site-verification" content="google-site-verification-token-hubfinder">
+    <meta name="msvalidate.01" content="bing-site-verification-token-hubfinder">
+    <title>HubFinder AI — Descubra Repositórios e Ferramentas do GitHub com IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#07090e',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            indigo: '#6366f1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+
+        /* Fundo com a foto HubFinder.jpg exata da pasta + overlay escuro */
+        body {
+            background-color: #07090e;
+            background-image: linear-gradient(to bottom, rgba(7, 9, 14, 0.75), rgba(7, 9, 14, 0.95)), url('./HubFinder.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Menu Moderno (Sidebar inspirada no Codepen / Codingstella) */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 15px 0 35px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            margin: 4px 12px;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .menu-link:hover, .menu-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+            color: #ffffff;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .menu-link i {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #07090e; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="m-0 p-0 overflow-x-hidden flex">
+
+    <!-- Sidebar / Menu Moderno -->
+    <aside class="sidebar shrink-0">
+        <!-- Logo Header -->
+        <div class="p-6 flex items-center space-x-3 border-b border-gray-800/80">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/40 p-1.5 overflow-hidden">
+                <img src="assets/images/logo.svg" alt="HubFinder Logo" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <span class="text-xl font-extrabold bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">HubFinder</span>
+                <span class="text-[10px] block text-indigo-400 font-mono tracking-widest uppercase font-semibold">AI Hub Engine</span>
+            </div>
+        </div>
+
+        <!-- Navegação do Menu -->
+        <nav class="flex-1 py-6 space-y-1.5 overflow-y-auto">
+            <div class="px-6 pb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Navegação</div>
+            <a href="#" class="menu-link active">
+                <i class="fa-solid fa-compass text-indigo-400"></i>
+                <span>Explorar</span>
+            </a>
+            <a href="#" class="menu-link">
+                <i class="fa-solid fa-fire text-orange-400"></i>
+                <span>Trending Repos</span>
+            </a>
+            <a href="#" onclick="openAIChat()" class="menu-link">
+                <i class="fa-solid fa-brain text-cyan-400"></i>
+                <span>Assistente IA</span>
+            </a>
+            <a href="#" onclick="openContactModal()" class="menu-link">
+                <i class="fa-solid fa-headset text-pink-400"></i>
+                <span>Fale Conosco</span>
+            </a>
+            <a href="#" class="menu-link">
+                <i class="fa-solid fa-bookmark text-purple-400"></i>
+                <span>Favoritos</span>
+            </a>
+
+            <div class="pt-6 pb-2 px-6">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Categorias GitHub</span>
+            </div>
+            <a href="#" onclick="filterByCategory('all')" class="menu-link">
+                <i class="fa-solid fa-layer-group text-cyan-400"></i>
+                <span>Todas as Categorias</span>
+            </a>
+            <a href="#" onclick="filterByCategory('ai')" class="menu-link">
+                <i class="fa-solid fa-robot text-purple-400"></i>
+                <span>Inteligência Artificial</span>
+            </a>
+            <a href="#" onclick="filterByCategory('tools')" class="menu-link">
+                <i class="fa-solid fa-toolbox text-blue-400"></i>
+                <span>Ferramentas & CLI</span>
+            </a>
+            <a href="#" onclick="filterByCategory('web')" class="menu-link">
+                <i class="fa-solid fa-globe text-emerald-400"></i>
+                <span>Web Development</span>
+            </a>
+            <a href="#" onclick="filterByCategory('scripts')" class="menu-link">
+                <i class="fa-solid fa-code text-amber-400"></i>
+                <span>Scripts & Utils</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-gray-800/80 bg-black/40 space-y-3">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <span class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="font-medium">Cloudflare Ready</span>
+                </span>
+                <i class="fa-solid fa-cloud-arrow-up text-cyan-400 text-sm"></i>
+            </div>
+            <!-- Contador de Visitas -->
+            <div class="pt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-gray-400 font-mono">
+                <span class="flex items-center space-x-1.5 text-indigo-300">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Visitas Totais:</span>
+                </span>
+                <span id="visitCount" class="bg-indigo-950/80 text-cyan-300 px-2.5 py-1 rounded-lg border border-indigo-500/30 font-bold">14,892</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
+        <!-- Top Header -->
+        <header class="h-16 bg-gray-900/60 backdrop-blur-md border-b border-gray-800/80 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center space-x-3">
+                <span class="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <i class="fa-solid fa-code-branch text-indigo-400"></i>
+                    <span>Explorador de Repositórios GitHub com Inteligência Artificial</span>
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="openAIChat()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-medium shadow-lg shadow-indigo-500/20 flex items-center space-x-2 transition-all">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Copilot IA</span>
+                </button>
+                <div class="w-9 h-9 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 shadow-inner">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero & Search Section -->
+        <div class="px-8 py-10 max-w-7xl mx-auto w-full">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl mb-4">
+                    Descubra o melhor do <span class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">GitHub</span> com Inteligência Artificial
+                </h1>
+                <p class="text-gray-400 text-lg">
+                    Busque repositórios por categoria, analise códigos instantaneamente com IA e encontre ferramentas ideais para o seu fluxo de desenvolvimento.
+                </p>
+            </div>
+
+            <!-- Barra de Busca Central -->
+            <div class="relative max-w-2xl mx-auto mb-8">
+                <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 rounded-2xl blur-md opacity-30 animate-pulse"></div>
+                <div class="relative bg-gray-900/90 backdrop-blur-xl border border-gray-700/80 rounded-2xl p-2 flex items-center shadow-2xl">
+                    <div class="pl-4 text-indigo-400 text-lg">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Buscar projetos e ferramentas no GitHub (ex: react, python, llm)..." class="w-full bg-transparent px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none text-base">
+                    <button onclick="triggerAISearch()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all flex items-center space-x-2 shrink-0 shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span>Buscar com IA</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Categorias Rápidas (Cards) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-12">
+                <button onclick="filterByCategory('tools')" class="group bg-gray-950/70 backdrop-blur-md hover:bg-indigo-600/20 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-2xl text-center transition-all shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-toolbox"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-200 text-sm">Ferramentas</h3>
+                    <p class="text-xs text-gray-500 mt-1">CLIs e Utilities</p>
+                </button>
+                <button onclick="filterByCategory('open-source')" class="group bg-gray-950/70 backdrop-blur-md hover:bg-indigo-600/20 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-2xl text-center transition-all shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-code-pull-request"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-200 text-sm">Open Source</h3>
+                    <p class="text-xs text-gray-500 mt-1">Repositórios Populares</p>
+                </button>
+                <button onclick="filterByCategory('ai')" class="group bg-gray-950/70 backdrop-blur-md hover:bg-indigo-600/20 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-2xl text-center transition-all shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-200 text-sm">Bots & Agents</h3>
+                    <p class="text-xs text-gray-500 mt-1">Automação & IA</p>
+                </button>
+                <button onclick="filterByCategory('libraries')" class="group bg-gray-950/70 backdrop-blur-md hover:bg-indigo-600/20 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-2xl text-center transition-all shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-200 text-sm">Bibliotecas</h3>
+                    <p class="text-xs text-gray-500 mt-1">Frameworks & SDKs</p>
+                </button>
+                <button onclick="filterByCategory('scripts')" class="group bg-gray-950/70 backdrop-blur-md hover:bg-indigo-600/20 border border-gray-800 hover:border-indigo-500/50 p-4 rounded-2xl text-center transition-all col-span-2 sm:col-span-1 shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-terminal"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-200 text-sm">Scripts</h3>
+                    <p class="text-xs text-gray-500 mt-1">Automação Rápida</p>
+                </button>
+            </div>
+
+            <!-- Lista de Repositórios -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-sparkles text-indigo-400"></i>
+                        <span>Repositórios em Destaque & IA</span>
+                    </h2>
+                    <span id="resultCount" class="text-xs text-gray-300 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700">Mostrando 4 repositórios</span>
+                </div>
+
+                <div id="repoGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Repos injetados via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal / Painel de IA -->
+    <div id="aiModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">HubFinder AI Copilot</h3>
+                </div>
+                <button onclick="closeAIChat()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="aiChatContent" class="py-6 space-y-4 max-h-96 overflow-y-auto text-sm text-gray-300">
+                <div class="p-3 bg-gray-800/80 rounded-xl border border-gray-700">
+                    <p class="font-semibold text-indigo-400 mb-1">🤖 HubFinder AI:</p>
+                    <p>Olá! Como posso ajudar você a encontrar o repositório ou ferramenta ideal no GitHub hoje?</p>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-800 flex items-center space-x-3">
+                <input type="text" id="aiInput" placeholder="Pergunte algo à IA sobre os projetos..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none">
+                <button onclick="sendAIMessage()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all shrink-0">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+
+    <!-- Modal Fale Conosco (Privacidade de Email Protegida) -->
+    <div id="contactModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="bg-gray-900 border border-indigo-500/40 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-pink-600/20 text-pink-400 flex items-center justify-center">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Fale Conosco — Suporte HubFinder</h3>
+                </div>
+                <button onclick="closeContactModal()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="py-6 space-y-4 text-sm text-gray-300">
+                <p class="text-gray-400">Envie sua mensagem para a nossa equipe. Seus dados e seu e-mail são mantidos em total sigilo em nossos servidores seguros.</p>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Seu Nome / Empresa</label>
+                    <input type="text" id="contactName" placeholder="Ex: Desenvolvedor Anônimo" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Sua Mensagem</label>
+                    <textarea id="contactMsg" rows="3" placeholder="Como podemos ajudar com o HubFinder AI?" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-gray-800 flex justify-end space-x-3">
+                <button onclick="closeContactModal()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium">Cancelar</button>
+                <button onclick="submitContact()" class="px-5 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-sm font-medium shadow-lg shadow-pink-600/30">Enviar Mensagem</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

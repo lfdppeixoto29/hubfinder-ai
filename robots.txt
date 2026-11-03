@@ -1,0 +1,3 @@
+User: *
+Disallow: /private/
+Sitemap: https://hubfinder-ai.pages.dev/sitemap.xml
